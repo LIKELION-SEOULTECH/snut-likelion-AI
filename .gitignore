@@ -2,3 +2,6 @@ rempCodeRunnerFile.py
 convert_to_onnx.py
 checkpoints/
 tempCodeRunnerFile.py
+kogpt_finetuned
+finetune_kogpt.py
+lion_chatbot.py
