@@ -3,3 +3,4 @@
 *.onnx   filter=lfs diff=lfs merge=lfs -text
 kogpt_finetuned/*       filter=lfs diff=lfs merge=lfs -text
 chatbot/sbert_finetuned/* filter=lfs diff=lfs merge=lfs -text
+chatbot/sbert_finetuned/model.safetensors filter=lfs diff=lfs merge=lfs -text
