@@ -1,0 +1,29 @@
+# Model weights & checkpoints
+*.safetensors
+*.pt
+*.pth
+*.bin
+results/
+saved_model/
+kluebert_intent_out/model.safetensors
+kluebert_intent_out/training_args.bin
+kluebert_intent_out/runs/
+
+# Logs
+logs/
+*.tfevents.*
+kluebert_logs/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.env
+venv/
+.venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store

@@ -1,0 +1,90 @@
+import os
+import json
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+from datasets import Dataset
+from transformers import BertTokenizerFast, BertForSequenceClassification, Trainer, TrainingArguments
+
+# --- 경로 설정 ---
+train_dir = "/home/dtlab/gy/likelion_chatbot/qi_train"
+test_dir = "/home/dtlab/gy/likelion_chatbot/qi_test"
+
+# --- 모델명 (한국어 전용) ---
+model_name = "klue/bert-base"
+
+# --- 1. train/test 폴더 내 csv 모두 로드 ---
+train_files = [os.path.join(train_dir, f) for f in os.listdir(train_dir) if f.endswith(".csv")]
+test_files = [os.path.join(test_dir, f) for f in os.listdir(test_dir) if f.endswith(".csv")]
+
+train_dfs = [pd.read_csv(p) for p in train_files]
+test_dfs = [pd.read_csv(p) for p in test_files]
+
+train_df = pd.concat(train_dfs, ignore_index=True)
+test_df = pd.concat(test_dfs, ignore_index=True)
+
+# --- 2. label encoding ---
+le = LabelEncoder()
+train_df["label"] = le.fit_transform(train_df["intent"])
+test_df["label"] = le.transform(test_df["intent"])
+
+# --- 3. Dataset 변환 ---
+train_ds = Dataset.from_pandas(train_df)
+test_ds = Dataset.from_pandas(test_df)
+
+# --- 4. Tokenizer ---
+tokenizer = BertTokenizerFast.from_pretrained(model_name)
+
+def preprocess(example):
+    return tokenizer(
+        example["question"],
+        truncation=True,
+        padding="max_length",
+        max_length=64
+    )
+
+train_ds = train_ds.map(preprocess, batched=True)
+test_ds = test_ds.map(preprocess, batched=True)
+
+# --- 5. 모델 준비 ---
+num_labels = len(le.classes_)
+model = BertForSequenceClassification.from_pretrained(model_name, num_labels=num_labels)
+
+# --- 6. TrainingArguments ---
+args = TrainingArguments(
+    output_dir="./kluebert_intent_out",
+    eval_strategy="epoch",           # 최신 transformers 버전
+    save_strategy="epoch",
+    num_train_epochs=10,             # 더 오래 학습
+    per_device_train_batch_size=16,
+    per_device_eval_batch_size=32,
+    learning_rate=1e-5,              # 더 안정적
+    weight_decay=0.01,
+    warmup_ratio=0.1,
+    logging_dir="./kluebert_logs",
+    logging_steps=50,
+    load_best_model_at_end=True,
+)
+
+# --- 7. Trainer 설정 ---
+trainer = Trainer(
+    model=model,
+    args=args,
+    train_dataset=train_ds,
+    eval_dataset=test_ds,
+    tokenizer=tokenizer,
+)
+
+# --- 8. 학습 ---
+trainer.train()
+
+# ✅ 모델 강제 저장 (확실히 저장)
+trainer.save_model("./kluebert_intent_out")
+
+# --- 9. 평가 ---
+metrics = trainer.evaluate()
+print("\n=== EVAL RESULTS ===")
+print(metrics)
+
+# --- 10. 라벨 매핑 저장 ---
+with open("./kluebert_intent_out/label_map.json", "w") as f:
+    json.dump({i: label for i, label in enumerate(le.classes_)}, f, ensure_ascii=False, indent=2)
