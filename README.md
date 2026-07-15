@@ -103,6 +103,17 @@ docker run -p 8000:8000 snut-likelion-chatbot
 | 최대 시퀀스 길이 | 32 |
 | 평가 지표 | Accuracy, Macro F1 |
 
+## 성능
+KLUE-BERT 학습 완료 — 테스트 정확도: 97.2%
+
+| 항목	| 값 |
+|---|---|
+| 클래스 수 |	50개 |
+| 학습 데이터	| 1,999건 |
+| 테스트 데이터 |  500건  |
+| 최종(best, epoch 12 기준) Test Accuracy	| 97.2% |
+| 최종 Macro F1 | 97.20% |
+
 ---
 
 ## 기술 스택
