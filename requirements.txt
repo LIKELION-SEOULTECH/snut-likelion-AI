@@ -1,8 +1,5 @@
-transformers>=4.36.0
-torch
-datasets
 scikit-learn
+joblib
 pandas
-matplotlib
-seaborn
-accelerate>=0.26.0
+fastapi
+uvicorn
